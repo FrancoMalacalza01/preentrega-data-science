@@ -1,9 +1,9 @@
 # Diseño de completación y productividad de pozos no convencionales en Vaca Muerta
 
-Proyecto final — **EnergIA Digital, Data Science** (Tutora Belén).
+Proyecto final — **EnergIA Digital, Data Science** 
 Estado: **Pre-entrega 2 (Análisis Exploratorio de Datos)**.
 
-**Integrantes:** Franco Malacalza · Martín Gerbaldo · Carolina
+**Integrantes:** Franco Malacalza · Martín Gerbaldo · Carolina Bailon
 
 ---
 
