@@ -3,7 +3,7 @@
 Proyecto final — **EnergIA Digital, Data Science** (Tutora Belén).
 Estado: **Pre-entrega 2 (Análisis Exploratorio de Datos)**.
 
-**Integrantes:** _(completar)_
+**Integrantes:** Franco Malacalza · Martín Gerbaldo · Carolina
 
 ---
 
