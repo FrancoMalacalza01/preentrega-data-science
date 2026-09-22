@@ -2,7 +2,7 @@
 
 Proyecto final del curso de Ciencia de Datos — **EnergIA Digital 2026**.
 
-**Integrantes:** Franco Malacalza · Martín Gerbaldo · Carolina Bailon
+**Integrantes:** Franco Malacalza · Martín Gerbaldo · Carolina Bailón
 
 ## El problema
 
@@ -17,23 +17,21 @@ terminar el pozo. La operadora lo define antes de saber cuánto va a producir: u
 la arena no se recupera. Sobreinvertir es plata enterrada; subinvertir deja petróleo en el
 subsuelo.
 
-**Objetivo del modelo:** estimar la producción acumulada de petróleo de un pozo en sus primeros
-12 meses (m³) a partir de su diseño de completación y su ubicación geológica, para poder comparar
-escenarios de diseño antes de perforar.
+## Objetivo
+
+Entender **cómo se diseña hoy un pozo no convencional en Vaca Muerta y cómo cambió ese diseño en
+la última década**, y dejar construido un dataset limpio que permita estimar la producción
+esperada de un pozo a partir de su diseño.
 
 ## Datos
 
-| Fuente | Contenido | Período | Uso |
+| Fuente | Contenido | Período | Registros |
 |---|---|---|---|
-| Secretaría de Energía — **Datos de fractura de pozos (Adjunto IV)** | Una fila por operación de fractura: longitud de rama, etapas, arena nacional e importada, agua, presión máxima, potencia de equipos, operadora, formación | 2009 → 2026, actualización diaria | Base del análisis |
-| Secretaría de Energía — **Producción de petróleo y gas por pozo (Capítulo IV)** | Producción mensual de petróleo y gas por pozo | 2006 → 2026 | Variable objetivo (Pre-entrega 3) |
+| Secretaría de Energía — **Datos de fractura de pozos (Adjunto IV)** | Una fila por operación de fractura: longitud de rama, etapas, arena nacional e importada, agua, presión máxima, potencia de equipos, operadora y formación | 2009 → 2026, actualización diaria | 4.890 |
 
-Ambas tablas se vinculan por el identificador de pozo `idpozo`. Del Capítulo IV solo sirven los
-archivos que dicen *"con identificador"*: los de *"DDJJ abiertas y cerradas"* no traen `idpozo` y
-no permiten el cruce.
+https://datos.energia.gob.ar/dataset/datos-de-fractura-de-pozos-adjunto-iv
 
-- https://datos.energia.gob.ar/dataset/datos-de-fractura-de-pozos-adjunto-iv
-- https://datos.energia.gob.ar/dataset/produccion-de-petroleo-y-gas-por-pozo
+El archivo está incluido en el repositorio, en `data/fractura_adjunto_iv.csv`.
 
 ## Alcance elegido
 
@@ -43,8 +41,7 @@ una escala de operación completamente distinta. Además, en un pozo vertical la
 intensidad por metro serían indefinidas.
 
 Tras la limpieza quedan **2.603 pozos**: 2.590 en Cuenca Neuquina y 2.517 con Vaca Muerta como
-formación productiva. Es coherente con la realidad de la industria argentina, donde el desarrollo
-no convencional es prácticamente sinónimo de Vaca Muerta.
+formación productiva.
 
 ## Estructura del repositorio
 
@@ -53,54 +50,37 @@ preentrega-data-science/
 ├── README.md
 ├── requirements.txt
 ├── data/
-│   ├── raw/                            # dataset original del portal, sin modificar
-│   │   └── fractura_adjunto_iv.csv
-│   └── processed/                      # generados por el notebook y por src/
-│       ├── pozos_analitico.csv         # 2.603 pozos, categóricas como texto
-│       └── pozos_encoded.csv           # mismo dataset, listo para modelar
-├── notebooks/
-│   └── 01_eda_preentrega2.ipynb        # Pre-entrega 2: el EDA completo
-├── reports/
-│   └── figures/                        # gráficos exportados por el notebook
-└── src/
-    ├── descargar_fractura.py           # baja el Adjunto IV vía la API del portal
-    └── preparar_dataset.py             # pipeline de limpieza → data/processed/
+│   └── fractura_adjunto_iv.csv     # dataset original del portal, sin modificar
+└── notebooks/
+    └── 01_eda_preentrega2.ipynb    # análisis exploratorio completo
 ```
 
-El notebook es el documento principal: explica y justifica cada decisión. `src/preparar_dataset.py`
-ejecuta ese mismo pipeline como script, y produce exactamente los mismos dos archivos.
-
-Para el detalle técnico de cómo está armado todo —el recorrido de los datos, qué hace cada
-archivo, cómo se resuelven las rutas y las decisiones metodológicas— ver
-[`docs/COMO_FUNCIONA.md`](docs/COMO_FUNCIONA.md).
+Al ejecutar el notebook se crea `data/processed/` con el dataset limpio. No está versionado
+porque se regenera solo.
 
 ## Cómo reproducir
 
 ```bash
 pip install -r requirements.txt
-
-python src/descargar_fractura.py     # opcional: el CSV ya está versionado
-python src/preparar_dataset.py       # regenera data/processed/
-
 jupyter notebook notebooks/01_eda_preentrega2.ipynb
 ```
 
-El notebook corre de punta a punta solo con el CSV de fractura. La sección 11, que construye la
-variable objetivo cruzando con la producción, se activa sola si encuentra los archivos del
-Capítulo IV en `data/`; si no están, lo informa y sigue sin fallar.
+El notebook corre de punta a punta con el CSV que ya está en el repositorio: no hace falta
+descargar nada. Está ejecutado, así que los resultados y los gráficos se ven directamente en
+GitHub sin correr nada.
 
-## Avance por pre-entregas
+## Qué hace el notebook
 
-- [x] **Pre-entrega 2 — Exploración, transformación y visualización.** Perfilado de las 30
-  columnas, reglas de calidad contra el dominio, análisis de sensibilidad del umbral de corte,
-  consolidación por pozo, imputación, 11 variables derivadas de intensidad, encoding y 8
-  visualizaciones. Ver `notebooks/01_eda_preentrega2.ipynb`.
-- [ ] **Pre-entrega 3 — Modelo supervisado.** Regresión multi-horizonte (3, 6 y 12 meses) con
-  partición temporal, línea base por formación y optimización de hiperparámetros.
-- [ ] **Modelo no supervisado.** Clustering de arquetipos de diseño (K-Means y DBSCAN) usando
-  solo variables de completación, y comparación de productividad entre grupos.
-- [ ] **Entrega final.** API de predicción con explicación de los resultados, documentación y
-  defensa oral.
+| Sección | Contenido |
+|---|---|
+| 1–3 | Objetivo, configuración, carga y diccionario de las 30 variables |
+| 4–5 | Estructura, grano de la tabla y perfilado de todas las columnas |
+| 6 | Calidad: reglas de negocio, valores centinela y outliers |
+| 7 | Limpieza: filtrado, consolidación por pozo, imputación y recorte |
+| 8 | Variables derivadas de intensidad y control de plausibilidad |
+| 9 | Encoding de las categóricas |
+| 10 | Seis bloques de visualización |
+| 11–12 | Conclusiones y guardado del dataset procesado |
 
 ## Principales hallazgos del EDA
 
@@ -124,8 +104,7 @@ Capítulo IV en `data/`; si no están, lo informa y sigue sin fallar.
 - **La intensidad de fractura se amesetó.** Entre 2016 y 2025 la arena por pozo se triplicó, pero
   eso es efecto de escala: la rama se duplicó. La arena *por metro* creció 29% hasta 2019 y
   apenas 9% en los seis años siguientes, mientras el espaciamiento entre etapas se apretaba de
-  78 m a 59 m. La industria dejó de mejorar bombeando más arena por metro. Es la hipótesis
-  central que el modelo de la Pre-entrega 3 tiene que contrastar.
+  78 m a 59 m. La industria dejó de mejorar bombeando más arena por metro.
 
 - **Cada operadora tiene una estrategia identificable.** Vista Energy usa la rama más larga
   (2.911 m), la mayor intensidad (4,17 tn/m) y el espaciamiento más apretado (58 m), y lo repite
@@ -138,16 +117,14 @@ Capítulo IV en `data/`; si no están, lo informa y sigue sin fallar.
 
 ## Limitaciones y sesgos
 
-- **Concentración en un operador.** YPF representa el 53% de los pozos, así que el modelo va a
-  aprender sobre todo su forma de completar y será menos confiable para operadoras chicas.
+- **Concentración en un operador.** YPF representa el 53% de los pozos, así que cualquier
+  conclusión refleja sobre todo su forma de completar.
 - **Concentración geológica.** El 97% de los pozos son de Vaca Muerta; las conclusiones no se
   extrapolan a otras formaciones no convencionales.
 - **Diseño confundido con geología.** Cada operadora trabaja en áreas de calidad de roca distinta,
-  así que el efecto del diseño está mezclado con el de la roca. El proyecto estima asociaciones,
+  así que el efecto del diseño está mezclado con el de la roca. El análisis describe asociaciones,
   no efectos causales.
 - **No hay contrafactual.** El dataset solo contiene pozos efectivamente fracturados: no se puede
   saber qué habría producido un pozo con otro diseño.
 - **Datos preliminares.** La Secretaría de Energía los publica como sujetos a revisión, y el año
   en curso está incompleto.
-- **Sesgo de supervivencia temporal.** Exigir 12 meses completos de producción excluirá a los
-  pozos más recientes, que son los de diseño más moderno.
