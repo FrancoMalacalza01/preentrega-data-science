@@ -70,6 +70,10 @@ preentrega-data-science/
 El notebook es el documento principal: explica y justifica cada decisión. `src/preparar_dataset.py`
 ejecuta ese mismo pipeline como script, y produce exactamente los mismos dos archivos.
 
+Para el detalle técnico de cómo está armado todo —el recorrido de los datos, qué hace cada
+archivo, cómo se resuelven las rutas y las decisiones metodológicas— ver
+[`docs/COMO_FUNCIONA.md`](docs/COMO_FUNCIONA.md).
+
 ## Cómo reproducir
 
 ```bash
