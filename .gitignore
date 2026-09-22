@@ -1,4 +1,20 @@
+# Datos crudos: regenerables con src/descargar_fractura.py.
+# El CSV de fractura se versiona igual porque la consigna pide entregar el
+# dataset dentro del repositorio, y pesa solo 1,2 MB.
+data/raw/*
+!data/raw/fractura_adjunto_iv.csv
+
+# Producción (Capítulo IV): son cientos de MB por año, no se versionan.
+data/raw/produccion/
+
+# Python
 __pycache__/
-.ipynb_checkpoints/
 *.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Sistema
 .DS_Store
+Thumbs.db
+desktop.ini
