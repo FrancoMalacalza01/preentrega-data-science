@@ -71,16 +71,16 @@ GitHub sin correr nada.
 
 ## Qué hace el notebook
 
-| Sección | Contenido |
-|---|---|
-| 1–3 | Objetivo, configuración, carga y diccionario de las 30 variables |
-| 4–5 | Estructura, grano de la tabla y perfilado de todas las columnas |
-| 6 | Calidad: reglas de negocio, valores centinela y outliers |
-| 7 | Limpieza: filtrado, consolidación por pozo, imputación y recorte |
-| 8 | Variables derivadas de intensidad y control de plausibilidad |
-| 9 | Encoding de las categóricas |
-| 10 | Seis bloques de visualización |
-| 11–12 | Conclusiones y guardado del dataset procesado |
+Sigue la estructura de la guía de la cursada, en tres partes:
+
+| Parte | Puntos | Contenido |
+|---|---|---|
+| **1 — Análisis exploratorio** | 1 a 12 | Conocer el dataset, identificar las variables, completitud, duplicados, categóricas, unicidad de escritura, distribuciones, atípicos y su comportamiento, relación entre variables, comparación de grupos y variable objetivo |
+| **2 — Transformación y limpieza** | 13 a 17 | Conversión de fechas, normalización de categorías, faltantes, validación de errores y definición del alcance, consolidación de cargas parciales |
+| **3 — Feature engineering** | 18 | Creación de las variables de intensidad, control de plausibilidad y encoding |
+
+La Parte 1 explora el dataset completo sin modificarlo. El filtro a pozos horizontales es una
+decisión documentada de la Parte 2, no un supuesto de partida.
 
 ## Principales hallazgos del EDA
 
