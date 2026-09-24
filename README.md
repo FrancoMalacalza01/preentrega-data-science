@@ -2,7 +2,7 @@
 
 Proyecto final del curso de Ciencia de Datos — **EnergIA Digital 2026**.
 
-**Integrantes:** Franco Malacalza · Martín Gerbaldo · Carolina Bailón
+**Integrantes:** Carolina Bailón · Martín Gerbaldo· Franco Malacalza 
 
 ## El problema
 
