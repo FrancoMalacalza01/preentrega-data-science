@@ -36,12 +36,12 @@ El archivo está incluido en el repositorio, en `data/fractura_adjunto_iv.csv`.
 ## Alcance elegido
 
 **Pozos horizontales con rama de al menos 500 m.** El dataset original mezcla dos poblaciones que
-no son comparables: 2.054 de los 4.890 registros (42%) son pozos verticales convencionales, con
-una escala de operación completamente distinta. Además, en un pozo vertical las variables de
-intensidad por metro serían indefinidas.
+no son comparables: 2.054 de los 4.890 registros (42%) son pozos verticales convencionales, con una
+escala de operación completamente distinta. Además, en un pozo vertical las variables de intensidad
+por metro serían indefinidas, porque habría que dividir por cero.
 
-Tras la limpieza quedan **2.603 pozos**: 2.590 en Cuenca Neuquina y 2.517 con Vaca Muerta como
-formación productiva.
+Tras la limpieza nos quedamos con **2.603 pozos**: 2.590 en Cuenca Neuquina y 2.517 con Vaca Muerta
+como formación productiva.
 
 ## Estructura del repositorio
 
@@ -56,7 +56,7 @@ preentrega-data-science/
 ```
 
 Al ejecutar el notebook se crea `data/processed/pozos_analitico.csv` con el dataset limpio y
-enriquecido. No está versionado porque se regenera solo.
+enriquecido. No lo versionamos porque se regenera solo.
 
 ## Cómo reproducir
 
@@ -79,8 +79,8 @@ Sigue la estructura de la guía de la cursada, en tres partes:
 | **2 — Transformación y limpieza** | 13 a 17 | Conversión de fechas, normalización de categorías, faltantes, validación de errores y definición del alcance, consolidación de cargas parciales |
 | **3 — Feature engineering** | 18 | Creación de las variables de intensidad y control de plausibilidad |
 
-La Parte 1 explora el dataset completo sin modificarlo. El filtro a pozos horizontales es una
-decisión documentada de la Parte 2, no un supuesto de partida.
+En la Parte 1 exploramos el dataset completo sin modificarlo. El filtro a pozos horizontales es una
+decisión que tomamos y documentamos en la Parte 2, no un supuesto de partida.
 
 ## Principales hallazgos del EDA
 
@@ -90,7 +90,7 @@ decisión documentada de la Parte 2, no un supuesto de partida.
 
 - **El grano no es un pozo por fila.** Hay 4.890 filas para 4.646 pozos. Los 244 registros
   excedentes comparten pozo *y* fecha de fractura y reparten las etapas entre varias filas: son
-  cargas parciales de una misma operación, no refracturas. Se consolidan sumando las magnitudes
+  cargas parciales de una misma operación, no refracturas. Las consolidamos sumando las magnitudes
   aditivas y tomando el máximo de las propiedades del pozo.
 
 - **Los ceros son el problema de calidad, no los nulos.** Solo tres columnas tienen nulos, pero
@@ -98,8 +98,8 @@ decisión documentada de la Parte 2, no un supuesto de partida.
   agua. Un equipo de fractura no opera a cero psi.
 
 - **`co2_inyectado_m3` no aporta nada, pero no por lo obvio.** Tiene 159 registros con valor
-  positivo, y los 159 son pozos verticales. Dentro de la población analizada es idénticamente
-  cero. Mirando solo el porcentaje de ceros global la conclusión habría sido otra.
+  positivo, y los 159 son pozos verticales. Dentro de la población que analizamos es idénticamente
+  cero. Si hubiéramos mirado solo el porcentaje de ceros global, la conclusión habría sido otra.
 
 - **La intensidad de fractura se amesetó.** Entre 2016 y 2025 la arena por pozo se triplicó, pero
   eso es efecto de escala: la rama se duplicó. La arena *por metro* creció 29% hasta 2019 y
@@ -111,9 +111,10 @@ decisión documentada de la Parte 2, no un supuesto de partida.
   de forma muy estandarizada. Total Austral está en el extremo opuesto (1.970 m y 2,48 tn/m) y
   con mucha más dispersión.
 
-- **Hay multicolinealidad severa.** `cantidad_fracturas` y `arena_total_tn` correlacionan 0,95, y
-  ambas con la longitud de rama cerca de 0,89. Para modelar hay que quedarse con una variable de
-  escala más las de intensidad, que son casi ortogonales entre sí.
+- **Las variables de diseño están muy correlacionadas entre sí.** La longitud de rama correlaciona
+  0,91 con la arena y 0,91 con las etapas, porque todas crecen con el tamaño del pozo. Para modelar
+  habrá que conservar una sola variable de escala más las de intensidad, que son casi ortogonales
+  entre sí.
 
 ## Limitaciones y sesgos
 
@@ -122,8 +123,8 @@ decisión documentada de la Parte 2, no un supuesto de partida.
 - **Concentración geológica.** El 97% de los pozos son de Vaca Muerta; las conclusiones no se
   extrapolan a otras formaciones no convencionales.
 - **Diseño confundido con geología.** Cada operadora trabaja en áreas de calidad de roca distinta,
-  así que el efecto del diseño está mezclado con el de la roca. El análisis describe asociaciones,
-  no efectos causales.
+  así que el efecto del diseño está mezclado con el de la roca. Describimos asociaciones, no
+  efectos causales.
 - **No hay contrafactual.** El dataset solo contiene pozos efectivamente fracturados: no se puede
   saber qué habría producido un pozo con otro diseño.
 - **Datos preliminares.** La Secretaría de Energía los publica como sujetos a revisión, y el año
