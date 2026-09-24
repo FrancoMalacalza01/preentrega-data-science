@@ -55,8 +55,8 @@ preentrega-data-science/
     └── 01_eda_preentrega2.ipynb    # análisis exploratorio completo
 ```
 
-Al ejecutar el notebook se crea `data/processed/` con el dataset limpio. No está versionado
-porque se regenera solo.
+Al ejecutar el notebook se crea `data/processed/pozos_analitico.csv` con el dataset limpio y
+enriquecido. No está versionado porque se regenera solo.
 
 ## Cómo reproducir
 
@@ -77,7 +77,7 @@ Sigue la estructura de la guía de la cursada, en tres partes:
 |---|---|---|
 | **1 — Análisis exploratorio** | 1 a 12 | Conocer el dataset, identificar las variables, completitud, duplicados, categóricas, unicidad de escritura, distribuciones, atípicos y su comportamiento, relación entre variables, comparación de grupos y variable objetivo |
 | **2 — Transformación y limpieza** | 13 a 17 | Conversión de fechas, normalización de categorías, faltantes, validación de errores y definición del alcance, consolidación de cargas parciales |
-| **3 — Feature engineering** | 18 | Creación de las variables de intensidad, control de plausibilidad y encoding |
+| **3 — Feature engineering** | 18 | Creación de las variables de intensidad y control de plausibilidad |
 
 La Parte 1 explora el dataset completo sin modificarlo. El filtro a pozos horizontales es una
 decisión documentada de la Parte 2, no un supuesto de partida.
