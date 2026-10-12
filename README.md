@@ -110,10 +110,10 @@ decisión que tomamos y documentamos en la Parte 2, no un supuesto de partida.
 |---|---|---|
 | **1** | 1 a 5 | Cruce con la producción, construcción de la variable objetivo con guardas de truncamiento, caracterización del objetivo y separación de los pozos de gas |
 | **2** | 6 y 7 | Selección de variables: varianza nula, disponibilidad al momento de decidir, multicolinealidad medida con VIF |
-| **3** | 8 a 10 | Partición temporal, preprocesamiento dentro del pipeline, métricas y modelo de referencia |
-| **4** | 11 a 13 | Regresión lineal, Ridge, Random Forest y Gradient Boosting; comparación |
-| **5** | 14 a 16 | Sobreajuste, partición temporal contra aleatoria, validación expansiva y variantes descartadas |
-| **6** | 17 a 19 | Importancia por permutación, coeficientes, diagnóstico de error por quintil y conclusiones |
+| **3** | 8 a 11 | Partición temporal, preprocesamiento dentro del pipeline, métricas y modelo de referencia, encoding de la variable categórica |
+| **4** | 12 a 14 | Regresión lineal, Ridge, Random Forest y Gradient Boosting; comparación |
+| **5** | 15 a 19 | Validación cruzada con `TimeSeriesSplit`, optimización de hiperparámetros con `GridSearchCV`, sobreajuste, partición temporal contra aleatoria, validación expansiva y variantes descartadas |
+| **6** | 20 a 22 | Importancia por permutación, coeficientes, diagnóstico de error por quintil y conclusiones |
 
 ## Resultados del modelado
 
@@ -141,6 +141,75 @@ la práctica se entrena con lo que ya produjo y se aplica a pozos que todavía n
 
 **La métrica no mide solo al modelo: mide al esquema de validación.**
 
+### Validación cruzada: el mismo hallazgo sin tocar el test
+
+El resultado anterior compara la partición temporal contra la aleatoria usando el conjunto de test.
+Se puede comprobar lo mismo **sin que el test participe**, con validación cruzada sobre los 1.298
+pozos de entrenamiento:
+
+| Esquema de validación cruzada | R² medio | Desvío entre folds | Rango |
+|---|---|---|---|
+| `TimeSeriesSplit(5)` — temporal | **0,171** | 0,116 | 0,017 – 0,335 |
+| `KFold(5, shuffle=True)` — aleatoria | **0,546** | 0,044 | 0,473 – 0,610 |
+
+La validación aleatoria infla el resultado **3,2 veces**, y los pozos de 2024-2025 no intervinieron
+en la medición. El desvío entre folds temporales es casi el triple que el de los aleatorios: cuando
+el R² depende tanto de qué año toque predecir, reportar un número sin su dispersión da una falsa
+sensación de precisión.
+
+### Optimización de hiperparámetros: no había nada que ganar
+
+Sobre esa validación temporal corrimos la búsqueda de hiperparámetros del Random Forest:
+
+| | MAE de validación cruzada | MAE en test | R² en test |
+|---|---|---|---|
+| Hiperparámetros elegidos a mano | 11.765 | **10.596** | **0,263** |
+| `GridSearchCV` — 120 combinaciones | **11.432** | 10.659 | 0,256 |
+| `RandomizedSearchCV` — 60 sorteos | 11.517 | 10.554 | 0,255 |
+
+**La optimización mejora la validación cruzada un 2,9% y no mejora el test.** Para saber si esas
+diferencias significan algo, entrenamos el mismo modelo cambiando solo la semilla del bosque: el R²
+de test se mueve con un desvío de **0,003**, en un rango de 0,252 a 0,264. El R² del modelo
+optimizado —0,256— **cae dentro de ese rango**, a 1,9 desvíos del modelo a mano. Y reentrenar ese
+mismo modelo optimizado con las filas ordenadas por año en lugar del orden original lo mueve otros
+0,004, sin que cambie ningún hiperparámetro. La optimización movió la métrica en el mismo orden en
+que la mueven detalles sin significado.
+
+`RandomizedSearchCV` lo deja más claro todavía: es el **mejor MAE de los tres** (42 m³ por debajo del
+modelo a mano) y a la vez el **peor R²**. Cuando el ordenamiento se da vuelta según qué métrica se
+mire, ese ordenamiento no es información.
+
+El óptimo es una meseta y no un pico: las cinco mejores combinaciones de la grilla están dentro de
+40 m³ entre sí, con un desvío entre folds de unos 1.000 m³. Y el mejor de la grilla apunta a
+`min_samples_leaf=2`, o sea hojas de dos pozos: más capacidad de memorizar, en un problema que ya
+tiene una brecha train-test de 0,45. **Mantenemos los hiperparámetros elegidos a mano.** Lo que
+aporta la búsqueda no es un modelo mejor, es la verificación de que no había uno mejor por encontrar.
+
+### Encoding de la variable categórica
+
+`operadora` es la única categórica del modelo: 10 categorías tras agrupar en `"otras"` las
+operadoras con menos de 40 pozos. Comparados los esquemas sobre la misma partición temporal:
+
+| Esquema | R² (Random Forest) | R² (Ridge) |
+|---|---|---|
+| Sin la categórica | 0,123 | 0,062 |
+| **One-hot — el elegido** | **0,263** | **0,240** |
+| Ordinal (códigos enteros) | 0,221 | **0,042** |
+| Target encoding (CV interna) | 0,260 | 0,240 |
+
+El encoding ordinal le cuesta poco al árbol, que puede partir la variable varias veces y reconstruir
+los grupos, y **le rompe el modelo al lineal** (0,240 → 0,042), que queda obligado a tratar códigos
+arbitrarios como si fueran una escala. El target encoding empata con one-hot usando una columna en
+lugar de diez: con 10 categorías no vale el riesgo de filtración, pero es el camino para `yacimiento`
+y sus 63 categorías.
+
+Mirando la variable apareció además un defecto del dato: **Vista figura como dos operadoras
+distintas** (`vista oil & gas argentina sau` y `vista energy argentina sau`) porque cambió de razón
+social, y el corte es temporal —62 pozos en train y 0 en test la primera, 33 y 88 la segunda—, así
+que esas dos columnas del one-hot funcionan como un marcador de época más que como la identidad de
+la operadora. Unificarlas no cambia el resultado (R² 0,263 → 0,262), así que lo dejamos documentado
+sin adoptarlo.
+
 ### Dónde falla el modelo
 
 El error no está repartido parejo. Por quintil de producción real:
@@ -159,7 +228,7 @@ excepcionales ni los fracasos**, que son justamente los que no se explican por e
 ## Principales hallazgos del EDA
 
 - **El dataset mezcla pozos verticales y horizontales.** Un vertical mediano bombea 0 tn de arena
-  y 430 m³ de agua en 3 etapas; uno horizontal, 8.576 tn y 54.314 m³ en 38 etapas. El cruce con
+  nacional y 430 m³ de agua en 3 etapas; uno horizontal, 8.576 tn y 54.314 m³ en 38 etapas. El cruce con
   `tipo_reservorio` lo confirma: los verticales son convencionales y los horizontales no.
 
 - **El grano no es un pozo por fila.** Hay 4.890 filas para 4.646 pozos. Los 244 registros
@@ -180,10 +249,12 @@ excepcionales ni los fracasos**, que son justamente los que no se explican por e
   apenas 9% en los seis años siguientes, mientras el espaciamiento entre etapas se apretaba de
   78 m a 59 m. La industria dejó de mejorar bombeando más arena por metro.
 
-- **Cada operadora tiene una estrategia identificable.** Vista Energy usa la rama más larga
-  (2.911 m), la mayor intensidad (4,17 tn/m) y el espaciamiento más apretado (58 m), y lo repite
-  de forma muy estandarizada. Total Austral está en el extremo opuesto (1.970 m y 2,48 tn/m) y
-  con mucha más dispersión.
+- **Cada operadora tiene una estrategia identificable, y se puede medir.** Vista usa la rama más
+  larga (2.911 m), la mayor intensidad (4,17 tn/m) y el espaciamiento más apretado (58 m), y lo
+  repite de forma muy estandarizada: su dispersión relativa de rama es 0,17, la más baja de las
+  seis. Total Austral está en el extremo opuesto en todo —1.970 m, 2,48 tn/m, etapas a 83,6 m— con
+  una dispersión de 0,42, dos veces y media la de Vista. La diferencia de intensidad entre las dos
+  es de 1,7 veces, ya normalizada por metro de rama: es criterio de diseño, no escala.
 
 - **Las variables de diseño están muy correlacionadas entre sí.** La longitud de rama correlaciona
   0,91 con la arena y 0,91 con las etapas, porque todas crecen con el tamaño del pozo. En el
@@ -218,8 +289,8 @@ excepcionales ni los fracasos**, que son justamente los que no se explican por e
 
 | Línea | Qué esperamos |
 |---|---|
-| **Encoding de alta cardinalidad** | `yacimiento` tiene 63 categorías y es un proxy geológico más fino que la operadora. Requiere validación cruzada anidada para no filtrar información |
-| **Optimización de hiperparámetros** | `GridSearchCV` con `TimeSeriesSplit`. Esperamos poco: las diferencias entre modelos ya son del orden del ruido |
+| **Encoding de alta cardinalidad** | `yacimiento` tiene 63 categorías y es un proxy geológico más fino que la operadora. Ya medimos que el target encoding empata con one-hot usando una columna en lugar de diez, así que es el camino; falta la validación cruzada anidada para no filtrar información |
+| **Hiperparámetros del boosting** | La búsqueda sobre el Random Forest ya está hecha y no dio nada. Queda abierta para Gradient Boosting, que tiene más parámetros sensibles (`learning_rate`, `max_iter`, `l2_regularization`) y donde la meseta puede ser menos plana |
 | **Predecir productividad por peso invertido** | La pregunta de negocio no es qué diseño produce más, sino cuál produce más por unidad de costo. El dataset tiene las cantidades de arena y agua, que son el grueso del costo |
 | **Intervalos de predicción** | Dado el error en los extremos, un rango es más honesto que un número |
 | **Modelo de gas** | Los 191 pozos excluidos, con la producción de gas como objetivo |
