@@ -26,8 +26,10 @@ subsuelo.
 Estimar **cuánto petróleo va a producir un pozo en su primer año a partir de las decisiones de
 diseño que se toman antes de fracturarlo**, y entender cómo cambió ese diseño en la última década.
 
-Es un problema de regresión supervisada: la variable a predecir son los metros cúbicos de petróleo
-acumulados en los primeros 12 meses de producción.
+Es un problema de **aprendizaje supervisado**, y lo abordamos de las dos formas. Como **regresión**,
+prediciendo los metros cúbicos de petróleo acumulados en los primeros 12 meses. Y como
+**clasificación**, prediciendo si el pozo va a superar la producción típica. No son la misma pregunta
+con otra cara: se miden distinto y, como mostramos, no dan el mismo resultado.
 
 ## Datos
 
@@ -69,8 +71,9 @@ preentrega-data-science/
 │   ├── produccion_filtrada.csv.gz    # producción mensual, recortada a nuestro alcance
 │   └── pozos_ubicacion.csv           # coordenadas y cota de los pozos
 └── notebooks/
-    ├── 01_eda_preentrega2.ipynb      # análisis exploratorio y limpieza
-    └── 02_modelado_preentrega3.ipynb # modelos supervisados, evaluación y métricas
+    ├── 01_eda_preentrega2.ipynb         # análisis exploratorio y limpieza
+    ├── 02_modelado_preentrega3.ipynb    # regresión: cuántos m³ produce un pozo
+    └── 03_clasificacion_preentrega3.ipynb  # clasificación: ¿va a ser uno de los buenos?
 ```
 
 Al ejecutar el primer notebook se crea `data/processed/pozos_analitico.csv` con el dataset limpio y
@@ -82,11 +85,12 @@ enriquecido. No lo versionamos porque se regenera solo.
 pip install -r requirements.txt
 jupyter notebook notebooks/01_eda_preentrega2.ipynb
 jupyter notebook notebooks/02_modelado_preentrega3.ipynb
+jupyter notebook notebooks/03_clasificacion_preentrega3.ipynb
 ```
 
-Los dos notebooks corren de punta a punta con los archivos que ya están en el repositorio: no hace
-falta descargar nada. El segundo es autocontenido —vuelve a aplicar el pipeline de limpieza del
-primero— así que puede correrse solo. Ambos están ejecutados, así que los resultados y los gráficos
+Los tres notebooks corren de punta a punta con los archivos que ya están en el repositorio: no hace
+falta descargar nada. El segundo y el tercero son autocontenidos —vuelven a aplicar el pipeline de
+limpieza del primero— así que pueden correrse solos. Los tres están ejecutados, así que los resultados y los gráficos
 se ven directamente en GitHub.
 
 **Las versiones están fijadas con `==`**, y ejecutado así el resultado es idéntico al que está
@@ -125,6 +129,21 @@ decisión que tomamos y documentamos en la Parte 2, no un supuesto de partida.
 | **4** | 12 a 14 | Regresión lineal, Ridge, Random Forest y Gradient Boosting; comparación |
 | **5** | 15 a 19 | Validación cruzada con `TimeSeriesSplit`, optimización de hiperparámetros con `GridSearchCV`, sobreajuste, partición temporal contra aleatoria, validación expansiva y variantes descartadas |
 | **6** | 20 a 22 | Importancia por permutación, coeficientes, diagnóstico de error por quintil y conclusiones |
+
+### `03_clasificacion_preentrega3.ipynb` — clasificación
+
+La misma pregunta planteada como categorías: **¿va a ser este pozo uno de los buenos?** Mismo dataset,
+mismas predictoras y misma partición temporal que el notebook 02, para que las dos mitades sean
+comparables. Lo único que cambia es la variable objetivo y las métricas.
+
+| Parte | Puntos | Contenido |
+|---|---|---|
+| **1** | 1 a 3 | Reconstrucción del dataset y definición del objetivo binario con el umbral en la mediana de entrenamiento |
+| **2** | 4 | Métricas de clasificación y modelo de referencia |
+| **3** | 5 | Regresión logística y Random Forest; comparación |
+| **4** | 6 y 7 | Validación cruzada con `TimeSeriesSplit` y optimización con `GridSearchCV` |
+| **5** | 8 y 9 | Matriz de confusión, curva ROC e importancia por permutación |
+| **6** | 10 y 11 | Clasificar contra regresionar, y conclusiones |
 
 ## Resultados del modelado
 
@@ -236,6 +255,54 @@ se triplica, y con sesgo de signo opuesto: el modelo comprime sus predicciones h
 Sirve para estimar un pozo de diseño típico; **no sirve para identificar de antemano los pozos
 excepcionales ni los fracasos**, que son justamente los que no se explican por el diseño.
 
+## Resultados de la clasificación
+
+Misma partición temporal, con el umbral en la **mediana de entrenamiento (28.853 m³)**. El umbral se
+calcula solo con train para no filtrar información del test.
+
+| Modelo | Exactitud | Precisión | Sensibilidad | F1 | ROC-AUC |
+|---|---|---|---|---|---|
+| Referencia (clase mayoritaria de train) | 0,313 | 0,000 | 0,000 | 0,000 | 0,500 |
+| Regresión logística | 0,735 | 0,747 | 0,929 | 0,828 | 0,742 |
+| **Random Forest** | **0,750** | **0,773** | 0,899 | **0,831** | **0,744** |
+
+Dos aclaraciones para leer la tabla. La referencia saca 0,313 porque entrenamiento está empatado
+649/649 y, ante el empate, predice "bajo" para todos: en test el 68,7% son altos. **La vara exigente
+es ese 68,7%**, que es lo que se obtiene prediciendo "alto" siempre. El modelo le gana por 6 puntos.
+
+Y ese 68,7% no es casualidad: el umbral calibrado con el pasado deja el test **69/31** porque los pozos
+de 2024-2025 tienen la mediana en 35.681 m³ contra 28.853. Es la misma deriva temporal del notebook 02,
+vista desde la clasificación.
+
+### El modelo detecta buenos, no descarta malos
+
+| Clase | Precisión | Sensibilidad | Pozos |
+|---|---|---|---|
+| bajo | 0,66 | **0,42** | 194 |
+| alto | 0,77 | **0,90** | 425 |
+
+Comete **112 falsos altos contra 43 falsos bajos**. Sirve para no perderse un pozo bueno; no sirve para
+confiar en que los que marca como malos lo son. Es el mismo sesgo de sobreestimación del regresor,
+con otra forma.
+
+### El hallazgo: conviene regresionar y cortar, no clasificar
+
+| | Exactitud | F1 | ROC-AUC |
+|---|---|---|---|
+| Clasificador entrenado para la tarea | 0,750 | 0,831 | 0,744 |
+| **Regresor del notebook 02, con su predicción cortada en el umbral** | **0,763** | **0,844** | **0,791** |
+
+**Tomar el modelo de regresión y comparar su predicción contra el umbral funciona mejor que entrenar un
+clasificador**, y la diferencia de AUC —0,047— es veinte veces la que separa a los dos clasificadores
+entre sí, y mayor que todo lo que mueve optimizar hiperparámetros.
+
+La razón es que **binarizar el objetivo tira información**: para el clasificador, un pozo de 28.000 m³
+y uno de 5.000 son los dos "bajo" y aprende lo mismo de ambos. El regresor sabe que uno está al borde
+y el otro es un fracaso, y ese orden más fino se conserva al cortar.
+
+No es una regla general: vale cuando la categoría se construyó cortando una continua que se puede
+medir. Si las clases fueran genuinamente categóricas, no habría ningún número que regresionar.
+
 ## Principales hallazgos del EDA
 
 - **El dataset mezcla pozos verticales y horizontales.** Un vertical mediano bombea 0 tn de arena
@@ -298,10 +365,22 @@ excepcionales ni los fracasos**, que son justamente los que no se explican por e
 
 ## Qué sigue
 
+La **4ª pre-entrega es de aprendizaje no supervisado**: un modelo de clustering desde el análisis
+exploratorio hasta su mejora. Es un problema distinto de los dos que resolvimos acá, así que la línea
+principal es esa:
+
+| Línea | Qué esperamos |
+|---|---|
+| **Clustering de diseños de completación** | ¿Se agrupan los pozos solos en tipos de diseño? Los grupos se formarían **sin mirar la producción**, y la pregunta interesante es si después separan pozos de productividad distinta. Hay que elegir el algoritmo, decidir el número de grupos con un criterio explícito y escalar las variables, porque la rama está en metros y la intensidad en toneladas por metro |
+| **Qué variables entran al clustering** | Las de intensidad son las candidatas naturales: ya están normalizadas por escala, así que agrupan por *cómo* se fractura y no por *cuán grande* es el pozo |
+
+Y las líneas supervisadas que quedaron abiertas, para más adelante:
+
 | Línea | Qué esperamos |
 |---|---|
 | **Encoding de alta cardinalidad** | `yacimiento` tiene 63 categorías y es un proxy geológico más fino que la operadora. Ya medimos que el target encoding empata con one-hot usando una columna en lugar de diez, así que es el camino; falta la validación cruzada anidada para no filtrar información |
 | **Hiperparámetros del boosting** | La búsqueda sobre el Random Forest ya está hecha y no dio nada. Queda abierta para Gradient Boosting, que tiene más parámetros sensibles (`learning_rate`, `max_iter`, `l2_regularization`) y donde la meseta puede ser menos plana |
+| **Sacar `ratio_arena_importada`** | El clasificador le da importancia **0,0000 exacta** y el regresor +0,2 m³. No la usa ninguno de los dos |
 | **Predecir productividad por peso invertido** | La pregunta de negocio no es qué diseño produce más, sino cuál produce más por unidad de costo. El dataset tiene las cantidades de arena y agua, que son el grueso del costo |
 | **Intervalos de predicción** | Dado el error en los extremos, un rango es más honesto que un número |
 | **Modelo de gas** | Los 191 pozos excluidos, con la producción de gas como objetivo |
