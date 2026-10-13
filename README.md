@@ -369,28 +369,6 @@ medir. Si las clases fueran genuinamente categóricas, no habría ningún númer
 - **Validez temporal acotada.** Está validado sobre pozos de 2024-2025. Si el diseño sigue
   cambiando, hay que reentrenar.
 
-## Qué sigue
-
-La **4ª pre-entrega es de aprendizaje no supervisado**: un modelo de clustering desde el análisis
-exploratorio hasta su mejora. Es un problema distinto de los dos que resolvimos acá, así que la línea
-principal es esa:
-
-| Línea | Qué esperamos |
-|---|---|
-| **Clustering de diseños de completación** | ¿Se agrupan los pozos solos en tipos de diseño? Los grupos se formarían **sin mirar la producción**, y la pregunta interesante es si después separan pozos de productividad distinta. Hay que elegir el algoritmo, decidir el número de grupos con un criterio explícito y escalar las variables, porque la rama está en metros y la intensidad en toneladas por metro |
-| **Qué variables entran al clustering** | Las de intensidad son las candidatas naturales: ya están normalizadas por escala, así que agrupan por *cómo* se fractura y no por *cuán grande* es el pozo |
-
-Y las líneas supervisadas que quedaron abiertas, para más adelante:
-
-| Línea | Qué esperamos |
-|---|---|
-| **Encoding de alta cardinalidad** | `yacimiento` tiene 63 categorías y es un proxy geológico más fino que la operadora. Ya medimos que el target encoding empata con one-hot usando una columna en lugar de diez, así que es el camino; falta la validación cruzada anidada para no filtrar información |
-| **Hiperparámetros del boosting** | La búsqueda sobre el Random Forest ya está hecha y no dio nada. Queda abierta para Gradient Boosting, que tiene más parámetros sensibles (`learning_rate`, `max_iter`, `l2_regularization`) y donde la meseta puede ser menos plana |
-| **Sacar `ratio_arena_importada`** | El clasificador le da importancia **0,0000 exacta** y el regresor +0,2 m³. No la usa ninguno de los dos |
-| **Predecir productividad por peso invertido** | La pregunta de negocio no es qué diseño produce más, sino cuál produce más por unidad de costo. El dataset tiene las cantidades de arena y agua, que son el grueso del costo |
-| **Intervalos de predicción** | Dado el error en los extremos, un rango es más honesto que un número |
-| **Modelo de gas** | Los 191 pozos excluidos, con la producción de gas como objetivo |
-
 ## Uso de herramientas de IA
 
 Usamos un asistente de IA como **copiloto** durante las tres pre-entregas. Lo documentamos porque
