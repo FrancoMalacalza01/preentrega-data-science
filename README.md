@@ -246,21 +246,6 @@ que esas dos columnas del one-hot funcionan como un marcador de época más que 
 la operadora. Unificarlas no cambia el resultado (R² 0,263 → 0,262), así que lo dejamos documentado
 sin adoptarlo.
 
-### Dónde falla el modelo
-
-El error no está repartido parejo. Por quintil de producción real:
-
-| Quintil | Real (mediana) | Predicho (mediana) | MAE |
-|---|---|---|---|
-| q1 — menos productivos | 15.507 | 28.560 | 15.655 |
-| q3 — centro | 35.681 | 40.239 | **7.108** |
-| q5 — más productivos | 57.521 | 46.060 | 15.444 |
-
-En el rango central el MAE baja a 5.675-7.108 m³ (14-18% de la producción típica). En los extremos
-se triplica, y con sesgo de signo opuesto: el modelo comprime sus predicciones hacia el centro.
-Sirve para estimar un pozo de diseño típico; **no sirve para identificar de antemano los pozos
-excepcionales ni los fracasos**, que son justamente los que no se explican por el diseño.
-
 ## Resultados de la clasificación
 
 Misma partición temporal, con el umbral en la **mediana de entrenamiento (28.853 m³)**. El umbral se
