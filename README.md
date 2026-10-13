@@ -104,12 +104,6 @@ Está verificado con **Python 3.13.16**. Si tu versión de Python no tiene rueda
 paquetes, cambiá el `==` por `>=` en esa línea: el análisis no cambia, solo se re-renderizan los
 gráficos.
 
-Una salvedad honesta: `RandomForest` con `n_jobs=-1` promedia los árboles en el orden en que terminan
-los procesos, así que el último bit de una predicción puede variar entre corridas. No mueve ningún
-resultado —hablamos de 10⁻¹⁶— pero hace que un valor que es exactamente cero pueda imprimirse como
-`-0.000` en lugar de `0.000`. Si hiciera falta reproducibilidad bit a bit, habría que poner
-`n_jobs=1` y resignar velocidad.
-
 ## Qué hace cada notebook
 
 ### `01_eda_preentrega2.ipynb` — exploración y limpieza
@@ -246,21 +240,6 @@ que esas dos columnas del one-hot funcionan como un marcador de época más que 
 la operadora. Unificarlas no cambia el resultado (R² 0,263 → 0,262), así que lo dejamos documentado
 sin adoptarlo.
 
-### Dónde falla el modelo
-
-El error no está repartido parejo. Por quintil de producción real:
-
-| Quintil | Real (mediana) | Predicho (mediana) | MAE |
-|---|---|---|---|
-| q1 — menos productivos | 15.507 | 28.560 | 15.655 |
-| q3 — centro | 35.681 | 40.239 | **7.108** |
-| q5 — más productivos | 57.521 | 46.060 | 15.444 |
-
-En el rango central el MAE baja a 5.675-7.108 m³ (14-18% de la producción típica). En los extremos
-se triplica, y con sesgo de signo opuesto: el modelo comprime sus predicciones hacia el centro.
-Sirve para estimar un pozo de diseño típico; **no sirve para identificar de antemano los pozos
-excepcionales ni los fracasos**, que son justamente los que no se explican por el diseño.
-
 ## Resultados de la clasificación
 
 Misma partición temporal, con el umbral en la **mediana de entrenamiento (28.853 m³)**. El umbral se
@@ -368,28 +347,6 @@ medir. Si las clases fueran genuinamente categóricas, no habría ningún númer
   "petróleo acumulado a 12 meses" sería evaluarlos con la métrica equivocada.
 - **Validez temporal acotada.** Está validado sobre pozos de 2024-2025. Si el diseño sigue
   cambiando, hay que reentrenar.
-
-## Qué sigue
-
-La **4ª pre-entrega es de aprendizaje no supervisado**: un modelo de clustering desde el análisis
-exploratorio hasta su mejora. Es un problema distinto de los dos que resolvimos acá, así que la línea
-principal es esa:
-
-| Línea | Qué esperamos |
-|---|---|
-| **Clustering de diseños de completación** | ¿Se agrupan los pozos solos en tipos de diseño? Los grupos se formarían **sin mirar la producción**, y la pregunta interesante es si después separan pozos de productividad distinta. Hay que elegir el algoritmo, decidir el número de grupos con un criterio explícito y escalar las variables, porque la rama está en metros y la intensidad en toneladas por metro |
-| **Qué variables entran al clustering** | Las de intensidad son las candidatas naturales: ya están normalizadas por escala, así que agrupan por *cómo* se fractura y no por *cuán grande* es el pozo |
-
-Y las líneas supervisadas que quedaron abiertas, para más adelante:
-
-| Línea | Qué esperamos |
-|---|---|
-| **Encoding de alta cardinalidad** | `yacimiento` tiene 63 categorías y es un proxy geológico más fino que la operadora. Ya medimos que el target encoding empata con one-hot usando una columna en lugar de diez, así que es el camino; falta la validación cruzada anidada para no filtrar información |
-| **Hiperparámetros del boosting** | La búsqueda sobre el Random Forest ya está hecha y no dio nada. Queda abierta para Gradient Boosting, que tiene más parámetros sensibles (`learning_rate`, `max_iter`, `l2_regularization`) y donde la meseta puede ser menos plana |
-| **Sacar `ratio_arena_importada`** | El clasificador le da importancia **0,0000 exacta** y el regresor +0,2 m³. No la usa ninguno de los dos |
-| **Predecir productividad por peso invertido** | La pregunta de negocio no es qué diseño produce más, sino cuál produce más por unidad de costo. El dataset tiene las cantidades de arena y agua, que son el grueso del costo |
-| **Intervalos de predicción** | Dado el error en los extremos, un rango es más honesto que un número |
-| **Modelo de gas** | Los 191 pozos excluidos, con la producción de gas como objetivo |
 
 ## Uso de herramientas de IA
 
