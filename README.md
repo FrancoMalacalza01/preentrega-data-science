@@ -89,6 +89,17 @@ falta descargar nada. El segundo es autocontenido —vuelve a aplicar el pipelin
 primero— así que puede correrse solo. Ambos están ejecutados, así que los resultados y los gráficos
 se ven directamente en GitHub.
 
+**Las versiones están fijadas con `==`**, y ejecutado así el resultado es idéntico al que está
+guardado: los mismos números y los mismos gráficos, hasta el píxel. Hacen falta las dos cosas para
+que eso valga. La semilla (`SEMILLA = 42`) fija los resultados numéricos, pero no el renderizado:
+entre versiones de `matplotlib` cambia el antialiasing y hasta el ancho en píxeles de una figura.
+Y ninguna fecha sale del reloj de la máquina —la referencia para descartar fechas imposibles es la
+fecha de publicación del propio archivo—, así que correrlo mañana da lo mismo que correrlo hoy.
+
+Está verificado con **Python 3.13.16**. Si tu versión de Python no tiene ruedas para alguno de los
+paquetes, cambiá el `==` por `>=` en esa línea: el análisis no cambia, solo se re-renderizan los
+gráficos.
+
 ## Qué hace cada notebook
 
 ### `01_eda_preentrega2.ipynb` — exploración y limpieza
