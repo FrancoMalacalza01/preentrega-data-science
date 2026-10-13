@@ -104,12 +104,6 @@ Está verificado con **Python 3.13.16**. Si tu versión de Python no tiene rueda
 paquetes, cambiá el `==` por `>=` en esa línea: el análisis no cambia, solo se re-renderizan los
 gráficos.
 
-Una salvedad honesta: `RandomForest` con `n_jobs=-1` promedia los árboles en el orden en que terminan
-los procesos, así que el último bit de una predicción puede variar entre corridas. No mueve ningún
-resultado —hablamos de 10⁻¹⁶— pero hace que un valor que es exactamente cero pueda imprimirse como
-`-0.000` en lugar de `0.000`. Si hiciera falta reproducibilidad bit a bit, habría que poner
-`n_jobs=1` y resignar velocidad.
-
 ## Qué hace cada notebook
 
 ### `01_eda_preentrega2.ipynb` — exploración y limpieza
