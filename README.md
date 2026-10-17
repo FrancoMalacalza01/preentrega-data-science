@@ -288,6 +288,46 @@ y el otro es un fracaso, y ese orden más fino se conserva al cortar.
 No es una regla general: vale cuando la categoría se construyó cortando una continua que se puede
 medir. Si las clases fueran genuinamente categóricas, no habría ningún número que regresionar.
 
+## Qué cambiaría una operadora: la lectura no técnica
+
+El modelo no decide por nadie, pero ordena las decisiones de diseño por cuánto mueven la producción
+del primer año. Leído sin jerga, dice tres cosas.
+
+**1. Alargar la rama es la palanca más grande, y por lejos.** Por cada ~900 m adicionales de tramo
+horizontal, el modelo asocia **unos 7.400 m³ más** de petróleo en los primeros doce meses, con el
+resto del diseño constante: casi el triple que la segunda variable de la lista. Es también el camino
+por el que la industria subió la productividad en la última década, y el EDA lo confirma: la rama
+mediana se triplicó en diez años.
+
+**2. Apretar las etapas suma; bombear más arena por metro, ya casi no.** Fracturar más denso —menos
+metros entre etapas— aparece con signo positivo en los dos modelos. La arena por metro, en cambio,
+tiene un efecto chico y con rendimientos decrecientes: el modelo lineal casi no la usa y el de
+árboles la aprovecha solo en los tramos bajos. Coincide con lo que muestra el EDA, donde la
+intensidad de arena dejó de crecer en 2019. Si hay un peso más para poner en el diseño, estos datos
+sugieren que rinde más en metros de rama que en toneladas de arena por metro.
+
+**3. Hay decisiones que no mueven la aguja.** La proporción de arena importada sobre nacional es
+indistinguible de cero en los dos modelos. Es un resultado útil justamente por negativo: es una
+decisión de compra que tiene costo y que, según estos datos, no se paga en producción.
+
+Tres advertencias que van en la misma frase que los resultados:
+
+- **El modelo explica el 26% de la variabilidad.** Sirve para comparar conjuntos de pozos y ordenar
+  prioridades de diseño; no para dictaminar sobre un pozo individual. Y falla justo en los extremos:
+  sobreestima a los peores pozos y subestima a los mejores.
+- **La mayor parte de lo que no explica es geología**, que no está en los datos abiertos. Dos pozos
+  con el mismo diseño en áreas distintas pueden producir muy distinto, y eso el modelo no lo ve.
+- **El peso de la operadora no mide la habilidad de la empresa**: mide la calidad del área que le
+  tocó. No se puede usar para rankear operadoras.
+- **Son asociaciones, no causas.** Solo existen los pozos que se perforaron: no hay forma de saber
+  qué habría producido uno de ellos con otro diseño.
+
+Y una conclusión que no es sobre pozos sino sobre cómo se compra un modelo: **si hubiéramos validado
+al azar, habríamos informado el doble de la precisión que el modelo tiene con pozos nuevos.** Un
+modelo que se va a usar para diseñar los pozos del año que viene hay que evaluarlo con los pozos de
+los años que todavía no vio. Es el hallazgo central del proyecto, y el que más fácil se traduce
+fuera del ámbito técnico.
+
 ## Principales hallazgos del EDA
 
 - **El dataset mezcla pozos verticales y horizontales.** Un vertical mediano bombea 0 tn de arena
