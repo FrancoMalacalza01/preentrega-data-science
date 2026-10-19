@@ -403,6 +403,7 @@ la cursada lo pide y porque es parte honesta de cómo trabajamos.
 | Sugerir qué gráfico comunica mejor un hallazgo | La interpretación de los resultados y el criterio físico de qué tiene sentido en un pozo |
 | Mejorar la redacción de las explicaciones para que se entiendan sin ser del rubro | Las decisiones metodológicas, incluida la de rechazar variantes que mejoraban la métrica |
 
+
 ### Cómo nos aseguramos de entender lo que entregamos
 
 El criterio que seguimos fue que **ninguna afirmación entra si no la podemos sostener con la salida
@@ -424,6 +425,7 @@ Tres casos concretos donde revisar en lugar de aceptar nos cambió la conclusió
 - **Agregar el año de fractura como variable.** Mejoraba el R² de 0,263 a 0,285. En vez de quedarnos
   con la mejora, la probamos en los otros cortes temporales: ahí cambiaba de signo. La descartamos
   y explicamos por qué, aunque el número fuera peor.
+  
 
 ### Revisión entre nosotros
 
