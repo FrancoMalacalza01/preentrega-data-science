@@ -76,7 +76,8 @@ preentrega-data-science/
 │   └── pozos_ubicacion.csv           # coordenadas y cota de los pozos
 ├── docs/
 │   ├── guia_de_defensa.pdf           # el proyecto explicado sin jerga, para la presentación
-│   └── presentacion.pdf              # 14 diapositivas con las que se presenta el trabajo
+│   ├── presentacion.pdf              # 14 diapositivas con las que se presenta el trabajo
+│   └── presentacion.pptx             # las mismas diapositivas, con las notas del orador
 ├── src/
 │   └── utils.py                      # funciones compartidas por los cuatro notebooks
 └── notebooks/
