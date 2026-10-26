@@ -70,6 +70,8 @@ preentrega-data-science/
 │   ├── fractura_adjunto_iv.csv       # dataset original del portal, sin modificar
 │   ├── produccion_filtrada.csv.gz    # producción mensual, recortada a nuestro alcance
 │   └── pozos_ubicacion.csv           # coordenadas y cota de los pozos
+├── src/
+│   └── utils.py                      # funciones compartidas por los tres notebooks
 └── notebooks/
     ├── 01_eda_preentrega2.ipynb         # análisis exploratorio y limpieza
     ├── 02_modelado_preentrega3.ipynb    # regresión: cuántos m³ produce un pozo
@@ -78,6 +80,21 @@ preentrega-data-science/
 
 Al ejecutar el primer notebook se crea `data/processed/pozos_analitico.csv` con el dataset limpio y
 enriquecido. No lo versionamos porque se regenera solo.
+
+### Qué vive en `src/utils.py` y qué no
+
+En el módulo está lo que se repetía entre notebooks y no aporta nada a la lectura del análisis: la
+**carga** de los archivos con su respaldo por URL, la **normalización de razones sociales** de las
+operadoras y la agrupación de categorías poco frecuentes, las **funciones de métricas** de regresión
+y de clasificación, el formateador de tablas y el cálculo de VIF.
+
+Lo que deliberadamente **no** está ahí es todo lo que constituye una decisión del análisis: la
+construcción de la variable objetivo, los dos guardas de truncamiento, la partición temporal y la
+definición de los modelos. Eso tiene que leerse en el notebook donde se justifica, no escondido en
+un import.
+
+Los notebooks siguen siendo autocontenidos: si se abren en Colab, donde el repositorio no está
+clonado, bajan `src/utils.py` del repositorio igual que hacen con los datos.
 
 ## Cómo reproducir
 
