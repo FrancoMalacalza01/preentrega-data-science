@@ -75,7 +75,8 @@ preentrega-data-science/
 │   ├── produccion_filtrada.csv.gz    # producción mensual, recortada a nuestro alcance
 │   └── pozos_ubicacion.csv           # coordenadas y cota de los pozos
 ├── docs/
-│   └── guia_de_defensa.pdf           # el proyecto explicado sin jerga, para la presentación
+│   ├── guia_de_defensa.pdf           # el proyecto explicado sin jerga, para la presentación
+│   └── presentacion.pdf              # 14 diapositivas con las que se presenta el trabajo
 ├── src/
 │   └── utils.py                      # funciones compartidas por los cuatro notebooks
 └── notebooks/
