@@ -74,8 +74,10 @@ preentrega-data-science/
 │   ├── fractura_adjunto_iv.csv       # dataset original del portal, sin modificar
 │   ├── produccion_filtrada.csv.gz    # producción mensual, recortada a nuestro alcance
 │   └── pozos_ubicacion.csv           # coordenadas y cota de los pozos
+├── docs/
+│   └── guia_de_defensa.pdf           # el proyecto explicado sin jerga, para la presentación
 ├── src/
-│   └── utils.py                      # funciones compartidas por los tres notebooks
+│   └── utils.py                      # funciones compartidas por los cuatro notebooks
 └── notebooks/
     ├── 01_eda_preentrega2.ipynb         # análisis exploratorio y limpieza
     ├── 02_modelado_preentrega3.ipynb    # regresión: cuántos m³ produce un pozo
@@ -473,7 +475,7 @@ fuera del ámbito técnico.
 
 ## Uso de herramientas de IA
 
-Usamos un asistente de IA como **copiloto** durante las tres pre-entregas. Lo documentamos porque
+Usamos un asistente de IA como **copiloto** durante las cuatro pre-entregas. Lo documentamos porque
 la cursada lo pide y porque es parte honesta de cómo trabajamos.
 
 ### En qué nos ayudó y qué decidimos nosotros
@@ -493,7 +495,7 @@ El criterio que seguimos fue que **ninguna afirmación entra si no la podemos so
 del código**. Todos los números de los notebooks salen de celdas ejecutadas y visibles: si un
 resultado del texto no coincidía con lo que imprimía la celda, corregíamos el texto, no el número.
 
-Tres casos concretos donde revisar en lugar de aceptar nos cambió la conclusión:
+Cuatro casos concretos donde revisar en lugar de aceptar nos cambió la conclusión:
 
 - **La columna `co2_inyectado_m3`.** La primera lectura fue que era constante y no aportaba nada.
   Al mirar la salida, tenía 159 registros con valor positivo. Verificamos uno por uno: los 159 son
@@ -508,6 +510,11 @@ Tres casos concretos donde revisar en lugar de aceptar nos cambió la conclusió
 - **Agregar el año de fractura como variable.** Mejoraba el R² de 0,263 a 0,285. En vez de quedarnos
   con la mejora, la probamos en los otros cortes temporales: ahí cambiaba de signo. La descartamos
   y explicamos por qué, aunque el número fuera peor.
+
+- **La silueta de 0,62 en el clustering.** El primer agrupamiento daba un valor altísimo para datos
+  reales. Al mirar qué estaba premiando, el algoritmo había dedicado un grupo entero a **tres pozos**
+  fracturados en una sola etapa. Acotando los extremos la silueta cayó a 0,40 y los grupos pasaron a
+  tener cientos de pozos: nos quedamos con el número peor.
   
 
 ### Revisión entre nosotros
@@ -516,3 +523,10 @@ Cada entrega la revisó otro integrante del grupo antes de darla por cerrada, y 
 cambios concretos: reemplazar el recorte de atípicos por imputación con la mediana del grupo —porque
 el *winsorizing* no era una técnica vista en la cursada— y reescribir una sección entera de
 comparación entre operadoras que no se entendía como estaba redactada.
+
+Esa decisión volvió a discutirse en la cuarta pre-entrega y la revisamos: ahí **sí** acotamos los
+valores extremos, porque el problema es otro. En los modelos supervisados los árboles son insensibles
+a un valor extremo, así que recortarlo solo perdía información. En un algoritmo basado en distancias
+un único pozo extremo deforma los grupos de todos los demás, y el punto 5 de ese notebook muestra
+exactamente cómo. Cuando la técnica cambia, el criterio se vuelve a justificar en lugar de
+arrastrarse.
