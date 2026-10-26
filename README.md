@@ -31,6 +31,10 @@ prediciendo los metros cúbicos de petróleo acumulados en los primeros 12 meses
 **clasificación**, prediciendo si el pozo va a superar la producción típica. No son la misma pregunta
 con otra cara: se miden distinto y, como mostramos, no dan el mismo resultado.
 
+Sobre el final damos vuelta la pregunta y sacamos la variable objetivo de la ecuación: con
+**aprendizaje no supervisado** preguntamos si los pozos se agrupan solos en tipos de diseño, sin
+decirle al algoritmo cuánto produjo ninguno.
+
 ## Datos
 
 Tres datasets abiertos de la Secretaría de Energía, todos incluidos en el repositorio:
@@ -75,7 +79,8 @@ preentrega-data-science/
 └── notebooks/
     ├── 01_eda_preentrega2.ipynb         # análisis exploratorio y limpieza
     ├── 02_modelado_preentrega3.ipynb    # regresión: cuántos m³ produce un pozo
-    └── 03_clasificacion_preentrega3.ipynb  # clasificación: ¿va a ser uno de los buenos?
+    ├── 03_clasificacion_preentrega3.ipynb  # clasificación: ¿va a ser uno de los buenos?
+    └── 04_clustering_preentrega4.ipynb   # clustering: ¿hay tipos de diseño?
 ```
 
 Al ejecutar el primer notebook se crea `data/processed/pozos_analitico.csv` con el dataset limpio y
@@ -103,12 +108,13 @@ pip install -r requirements.txt
 jupyter notebook notebooks/01_eda_preentrega2.ipynb
 jupyter notebook notebooks/02_modelado_preentrega3.ipynb
 jupyter notebook notebooks/03_clasificacion_preentrega3.ipynb
+jupyter notebook notebooks/04_clustering_preentrega4.ipynb
 ```
 
-Los tres notebooks corren de punta a punta con los archivos que ya están en el repositorio: no hace
-falta descargar nada. El segundo y el tercero son autocontenidos —vuelven a aplicar el pipeline de
-limpieza del primero— así que pueden correrse solos. Los tres están ejecutados, así que los resultados y los gráficos
-se ven directamente en GitHub.
+Los cuatro notebooks corren de punta a punta con los archivos que ya están en el repositorio: no hace
+falta descargar nada. Del segundo en adelante son autocontenidos —vuelven a aplicar el pipeline de
+limpieza del primero— así que pueden correrse solos. Los cuatro están ejecutados, así que los
+resultados y los gráficos se ven directamente en GitHub.
 
 **Las versiones están fijadas con `==`**, y ejecutado así el resultado es idéntico al que está
 guardado: los mismos números y los mismos gráficos, hasta el píxel. Hacen falta las dos cosas para
@@ -161,6 +167,20 @@ comparables. Lo único que cambia es la variable objetivo y las métricas.
 | **4** | 6 y 7 | Validación cruzada con `TimeSeriesSplit` y optimización con `GridSearchCV` |
 | **5** | 8 y 9 | Matriz de confusión, curva ROC e importancia por permutación |
 | **6** | 10 y 11 | Clasificar contra regresionar, y conclusiones |
+
+### `04_clustering_preentrega4.ipynb` — clustering
+
+La pregunta sin variable objetivo: **¿existen tipos de diseño de completación, o cada pozo se diseña
+distinto?** Como el clustering no necesita saber cuánto produjo cada pozo, trabaja sobre los **2.603
+pozos del alcance** en lugar de los 1.917 con producción medida: 686 pozos más.
+
+| Parte | Puntos | Contenido |
+|---|---|---|
+| **1** | 1 a 3 | Reconstrucción del dataset y elección de las variables de intensidad |
+| **2** | 4 a 6 | Estandarización, diagnóstico de extremos y acotamiento |
+| **3** | 7 a 9 | Inercia, silueta, Calinski-Harabasz, Davies-Bouldin y estabilidad entre semillas |
+| **4** | 10 y 11 | Las cuatro familias, su perfil, PCA y su evolución en el tiempo |
+| **5** | 12 a 14 | Ward, GMM y DBSCAN; validación externa contra la producción; conclusiones |
 
 ## Resultados del modelado
 
@@ -304,6 +324,52 @@ y el otro es un fracaso, y ese orden más fino se conserva al cortar.
 
 No es una regla general: vale cuando la categoría se construyó cortando una continua que se puede
 medir. Si las clases fueran genuinamente categóricas, no habría ningún número que regresionar.
+
+## Resultados del clustering
+
+**Cuatro familias de diseño**, encontradas usando solo las cinco variables de intensidad. Las columnas
+de rama, etapas y año **no entraron al ajuste**: describen lo que el algoritmo encontró.
+
+| Familia | Pozos | Espaciamiento | Arena/m | Agua/m | Arena imp. | Rama | Etapas | Año (mediana) |
+|---|---|---|---|---|---|---|---|---|
+| **Intensivo moderno** | 1.476 | 60 m | 3,91 t | 24,8 m³ | 0% | 2.800 m | 48 | 2024 |
+| **Intermedio** | 911 | 76 m | 3,01 t | 18,4 m³ | 0% | 2.256 m | 29 | 2020 |
+| **Arena importada** | 132 | 78 m | 2,82 t | 13,6 m³ | **90%** | 1.244 m | 15 | 2016 |
+| **Baja intensidad** | 84 | 133 m | 0,93 t | 2,6 m³ | 0% | 1.017 m | 7 | 2017 |
+
+El algoritmo nunca vio el año de fractura y sin embargo las medianas salen ordenadas: encontró la
+**evolución histórica del diseño** que habíamos descrito a mano en el EDA.
+
+### La validación externa: las familias producen distinto
+
+La producción quedó fuera del ajuste, así que compararla entre familias es una prueba honesta:
+
+| Familia | Pozos con producción | Mediana (m³) |
+|---|---|---|
+| Intensivo moderno | 1.078 | **36.760** |
+| Intermedio | 716 | 26.422 |
+| Arena importada | 92 | 15.638 |
+| Baja intensidad | 31 | **3.311** |
+
+Kruskal-Wallis H = 264,4 (p ≈ 5·10⁻⁵⁷). Un factor de once entre la primera y la última, **en el mismo
+orden que la intensidad del diseño**. No prueba causalidad: las familias están confundidas con la
+época.
+
+### Una variable inútil para predecir, decisiva para describir
+
+`ratio_arena_importada` es la variable que los modelos supervisados descartaron: +79 m³ en Ridge e
+importancia **0,0000 exacta** en el clasificador. En el clustering **define una familia entera**. No
+hay contradicción: predecir la producción y describir el diseño son preguntas distintas.
+
+### Lo que costó llegar
+
+- **Sin acotar los extremos, K-Means dedica un grupo entero a 3 pozos** y la silueta lo aplaude con
+  0,62. Acotando al 1%–99% cae a 0,40, con un grupo más chico de 134 pozos en lugar de 3.
+- **Los índices no deciden:** silueta y Calinski-Harabasz votan k=2, Davies-Bouldin vota k=6, la
+  inercia no tiene codo. Elegimos k=4 por estabilidad, tamaño de grupo e interpretabilidad, y lo
+  dejamos argumentado.
+- **`n_init` no es decorativo:** con 10 arranques, k=4 daba agrupamientos distintos según la semilla
+  (ARI 0,26); con 200, siempre el mismo (ARI 0,99).
 
 ## Qué cambiaría una operadora: la lectura no técnica
 
